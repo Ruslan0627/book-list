@@ -23,7 +23,7 @@ export class Header extends DivComponent{
         Избранное
         </a>
         <div class ="menu__counter">
-        ${this.appState.favorites.length + 10}
+        ${this.appState.favorites.length}
         </div>
         </div>
         `

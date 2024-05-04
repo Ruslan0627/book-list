@@ -1137,10 +1137,55 @@
         Избранное
         </a>
         <div class ="menu__counter">
-        ${this.appState.favorites.length + 10}
+        ${this.appState.favorites.length}
         </div>
         </div>
         `;
+            return this.element
+        }
+    }
+
+    class Search extends DivComponent{
+        constructor (state) {
+            super(); 
+            this.state = state; 
+        } 
+
+        onSearch() {
+            const value = this.element.querySelector("input").value;
+            this.state.searchValue = value;
+        }
+
+        render() {
+            this.element.innerHTML = "";
+            this.element.classList.add("search");
+            this.element.innerHTML = `
+        <div class = "search__wrapper">
+        <input 
+        class = "search__input"
+        type = "text" 
+        placeholder = "Найти книгу или автора...."
+        value = "${this.state.searchValue ?? ""}"
+        />
+        <img 
+        src = "../../../static/search.svg" 
+        alt = "Кнопка поиска">
+        </div>
+
+        <button 
+        type = "button" 
+        class ="search__button"
+        alt = "Кнопка поиска"
+        aria-label = "Искать книги"
+        >
+        <img src = "../../../static/search-white.svg" 
+        alt = "Кнопка поиска">
+        </button >
+        `;
+            this.element.querySelector("button").addEventListener("click",this.onSearch.bind(this));
+            this.element.querySelector("input").addEventListener("keydown",( event ) => {
+                if ( event.code === "Enter" ) this.onSearch();
+            });
             return this.element
         }
     }
@@ -1151,6 +1196,7 @@
         this.setTitle("Главная страница");
         this.appState = appState;
         this.appState = onChange(this.appState,this.appStateHook.bind(this));
+        this.state = onChange(this.state, this.stateHook.bind(this));
       }
 
       state = {
@@ -1165,9 +1211,24 @@
          this.render();
     }
 
+    async stateHook(path) {
+      if( path === "searchValue") {
+        const data = await this.getBooklist(this.state.searchValue, this.state.offset);
+        this.state.bookList = data;
+        console.log(data);
+      }
+
+    }
+
+    async getBooklist (searchValue,offset) {
+    const getData = await fetch (`https://openlibrary.org/search.json?q=${searchValue}&offset=${offset}`);
+    return getData.json()
+    }
+
       render() {
         const main = document.createElement("div");
-        main.innerHTML = `Главная страинца `;
+        const searchComponent = new Search(this.state).render();
+        main.append(searchComponent);
         this.app.innerHTML = "";
         this.app.append(main);
         this.renderHeader();
